@@ -1419,7 +1419,7 @@ public final class GridLayer extends RootLayer implements MediaFeed.Listener, Ti
         if (mState == STATE_FULL_SCREEN) {
             centerCameraForSlot(mInputProcessor.getCurrentSelectedSlot(), 1.0f);
         }
-        mMediaFeed.performOperation(MediaFeed.OPERATION_ROTATE, mediaBuckets, new Float(f));
+        mMediaFeed.performOperation(MediaFeed.OPERATION_ROTATE, mediaBuckets, Float.valueOf(f));
         // we recreate these displayitems from the cache
     }
 

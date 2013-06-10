@@ -4,6 +4,8 @@
     android:versionName="1.1.30682"
     xmlns:android="http://schemas.android.com/apk/res/android" package="com.cooliris.media">
 
+    <uses-sdk android:minSdkVersion="9" />
+
     <original-package android:name="com.cooliris.media" />
 
     <uses-permission android:name="android.permission.SET_WALLPAPER" />

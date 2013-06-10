@@ -20,8 +20,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public final class MediaBucketList {
-    private static final Boolean TRUE = new Boolean(true);
-    private static final Boolean FALSE = new Boolean(false);
+    private static final Boolean TRUE = Boolean.valueOf(true);
+    private static final Boolean FALSE = Boolean.valueOf(false);
 
     private ArrayList<MediaBucket> mBuckets = new ArrayList<MediaBucket>(1024);
     private boolean mDirtyCount;

@@ -61,7 +61,7 @@ public final class PicasaDataSource implements DataSource {
             Account account = accounts[i];
             boolean isEnabled = ContentResolver.getSyncAutomatically(account, PicasaContentProvider.AUTHORITY);
             String username = PicasaApi.canonicalizeUsername(account.name);
-            accountsEnabled.put(username, new Boolean(isEnabled));
+            accountsEnabled.put(username, Boolean.valueOf(isEnabled));
         }
         return accountsEnabled;
     }

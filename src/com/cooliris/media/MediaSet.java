@@ -79,6 +79,7 @@ public class MediaSet {
     public boolean mSyncPending = false;
 
     private ArrayList<MediaItem> mItems;
+    private final Object mItemsLock = new Object();
     private LongSparseArray<MediaItem> mItemsLookup;
     private LongSparseArray<MediaItem> mItemsLookupVideo;
     public int mNumItemsLoaded = 0;
@@ -143,7 +144,7 @@ public class MediaSet {
     }
 
     public void clear() {
-        synchronized(mItems) {
+        synchronized(mItemsLock) {
             mItems.clear();
             MediaItem item = new MediaItem();
             item.mId = Shared.INVALID;
@@ -195,7 +196,7 @@ public class MediaSet {
         }
         final MediaItem item = (lookupItem == null) ? itemToAdd : lookupItem;
         item.mFlagForDelete = false;
-        synchronized(mItems) {
+        synchronized(mItemsLock) {
             if (mItems.size() == 0) {
                 mItems.add(item);
             } else if (mItems.get(0).mId == -1L) {
@@ -269,7 +270,7 @@ public class MediaSet {
      *         not present in the set.
      */
     public boolean removeItem(final MediaItem itemToRemove) {
-        synchronized (mItems) {
+        synchronized (mItemsLock) {
             if (mItems.remove(itemToRemove)) {
                 --mNumExpectedItems;
                 --mNumItemsLoaded;
@@ -284,7 +285,7 @@ public class MediaSet {
     }
 
     public void removeDuplicate(final MediaItem itemToRemove) {
-        synchronized (mItems) {
+        synchronized (mItemsLock) {
             int numItems = mItems.size();
             boolean foundItem = false;
             for (int i = 0; i < numItems; ++i) {

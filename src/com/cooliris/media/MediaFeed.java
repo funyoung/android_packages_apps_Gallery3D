@@ -48,6 +48,7 @@ public final class MediaFeed implements Runnable {
     private IndexRange mVisibleRange = new IndexRange();
     private IndexRange mBufferedRange = new IndexRange();
     private ArrayList<MediaSet> mMediaSets = new ArrayList<MediaSet>();
+    private final Object mMediaSetsLock = new Object();
     private Listener mListener;
     private DataSource mDataSource;
     private boolean mListenerNeedsUpdate = false;
@@ -55,6 +56,7 @@ public final class MediaFeed implements Runnable {
     private MediaSet mSingleWrapper = new MediaSet();
     private boolean mInClusteringMode = false;
     private HashMap<MediaSet, MediaClustering> mClusterSets = new HashMap<MediaSet, MediaClustering>(32);
+    private final Object mClusterSetsLock = new Object();
     private int mExpandedMediaSetIndex = Shared.INVALID;
     private MediaFilter mMediaFilter;
     private MediaSet mMediaFilteredSet;
@@ -67,6 +69,7 @@ public final class MediaFeed implements Runnable {
     private boolean mLoading;
     private HashMap<String, ContentObserver> mContentObservers = new HashMap<String, ContentObserver>();
     private ArrayList<String[]> mRequestedRefresh = new ArrayList<String[]>();
+    private final Object mRequestedRefreshLock = new Object();
     private volatile boolean mIsShutdown = false;
 
     public interface Listener {
@@ -99,7 +102,7 @@ public final class MediaFeed implements Runnable {
             MediaSet set = mMediaSets.get(i);
             set.clear();
         }
-        synchronized (mMediaSets) {
+        synchronized (mMediaSetsLock) {
             mMediaSets.clear();
         }
         int numClusters = mClusterSets.size();
@@ -238,7 +241,7 @@ public final class MediaFeed implements Runnable {
     public void addItemToMediaSet(MediaItem item, MediaSet mediaSet) {
         item.mParentMediaSet = mediaSet;
         mediaSet.addItem(item);
-        synchronized (mClusterSets) {
+        synchronized (mClusterSetsLock) {
             if (item.mClusteringState == MediaItem.NOT_CLUSTERED) {
                 MediaClustering clustering = mClusterSets.get(mediaSet);
                 if (clustering == null) {
@@ -317,7 +320,7 @@ public final class MediaFeed implements Runnable {
     }
 
     public void removeMediaSet(MediaSet set) {
-        synchronized (mMediaSets) {
+        synchronized (mMediaSetsLock) {
             mMediaSets.remove(set);
         }
         mMediaFeedNeedsToRun = true;
@@ -325,7 +328,7 @@ public final class MediaFeed implements Runnable {
 
     private void removeItemFromMediaSet(MediaItem item, MediaSet mediaSet) {
         mediaSet.removeItem(item);
-        synchronized (mClusterSets) {
+        synchronized (mClusterSetsLock) {
             MediaClustering clustering = mClusterSets.get(mediaSet);
             if (clustering != null) {
                 clustering.removeItemFromClustering(item);
@@ -534,7 +537,7 @@ public final class MediaFeed implements Runnable {
             while (!Thread.interrupted() && !mIsShutdown) {
                 String[] databaseUris = null;
                 boolean performRefresh = false;
-                synchronized (mRequestedRefresh) {
+                synchronized (mRequestedRefreshLock) {
                     if (mRequestedRefresh.size() > 0) {
                         // We prune this first.
                         int numRequests = mRequestedRefresh.size();
@@ -571,7 +574,7 @@ public final class MediaFeed implements Runnable {
                 if (mListenerNeedsUpdate && !mMediaFeedNeedsToRun) {
                     mListenerNeedsUpdate = false;
                     if (mListener != null)
-                        synchronized (mMediaSets) {
+                        synchronized (mMediaSetsLock) {
                             mListener.onFeedChanged(this, mListenerNeedsLayout);
                         }
                     try {
@@ -842,7 +845,7 @@ public final class MediaFeed implements Runnable {
         }
         if (setToUse != null) {
             MediaClustering clustering = null;
-            synchronized (mClusterSets) {
+            synchronized (mClusterSetsLock) {
                 // Make sure the computation is completed to the end.
                 clustering = mClusterSets.get(setToUse);
                 if (clustering != null) {
@@ -927,16 +930,16 @@ public final class MediaFeed implements Runnable {
 
     public void refresh() {
         if (mDataSource != null) {
-            synchronized (mRequestedRefresh) {
+            synchronized (mRequestedRefreshLock) {
                 mRequestedRefresh.add(mDataSource.getDatabaseUris());
             }
         }
     }
 
     private void refresh(final String[] databaseUris) {
-        synchronized (mMediaSets) {
+        synchronized (mMediaSetsLock) {
             if (mDataSource != null) {
-                synchronized (mRequestedRefresh) {
+                synchronized (mRequestedRefreshLock) {
                     mRequestedRefresh.add(databaseUris);
                 }
             }

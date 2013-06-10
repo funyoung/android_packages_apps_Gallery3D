@@ -41,6 +41,7 @@ public final class DiskCache {
     private final File mCacheDirectory;
     private final String mCacheDirectoryPath;
     private LongSparseArray<Record> mIndexMap;
+    private final Object mIndexMapLock = new Object();
     private final LongSparseArray<RandomAccessFile> mChunkFiles = new LongSparseArray<RandomAccessFile>();
     private int mTailChunk = 0;
     private int mNumInsertions = 0;
@@ -66,7 +67,7 @@ public final class DiskCache {
     public byte[] get(long key, long timestamp) {
         // Look up the record for the given key.
         Record record = null;
-        synchronized (mIndexMap) {
+        synchronized (mIndexMapLock) {
             record = mIndexMap.get(key);
         }
         if (record != null) {
@@ -93,7 +94,7 @@ public final class DiskCache {
 
     public boolean isDataAvailable(long key, long timestamp) {
         Record record = null;
-        synchronized (mIndexMap) {
+        synchronized (mIndexMapLock) {
             record = mIndexMap.get(key);
         }
         if (record == null) {
@@ -122,7 +123,7 @@ public final class DiskCache {
         }
 
         // Check to see if the record already exists.
-        synchronized (mIndexMap) {
+        synchronized (mIndexMapLock) {
             record = mIndexMap.get(key);
         }
         if (record != null && data.length <= record.sizeOnDisk) {
@@ -133,7 +134,7 @@ public final class DiskCache {
                 if (chunkFile != null) {
                     chunkFile.seek(record.offset);
                     chunkFile.write(data);
-                    synchronized (mIndexMap) {
+                    synchronized (mIndexMapLock) {
                         mIndexMap.put(key, new Record(currentChunk, record.offset, data.length, record.sizeOnDisk, timestamp));
                     }
                     if (++mNumInsertions == 32) { // CR: 32 => constant
@@ -158,7 +159,7 @@ public final class DiskCache {
                 final int offset = (int) chunkFile.length();
                 chunkFile.seek(offset);
                 chunkFile.write(data);
-                synchronized (mIndexMap) {
+                synchronized (mIndexMapLock) {
                     mIndexMap.put(key, new Record(chunk, offset, data.length, data.length, timestamp));
                 }
                 if (offset + data.length > CHUNK_SIZE) {
@@ -182,7 +183,7 @@ public final class DiskCache {
     }
 
     public void delete(long key) {
-        synchronized (mIndexMap) {
+        synchronized (mIndexMapLock) {
             mIndexMap.remove(key);
         }
     }
@@ -225,7 +226,7 @@ public final class DiskCache {
             mChunkFiles.clear();
         }
         if (mIndexMap != null) {
-            synchronized (mIndexMap) {
+            synchronized (mIndexMapLock) {
                 if (mIndexMap != null) {
                     mIndexMap.clear();
                 }
@@ -267,7 +268,7 @@ public final class DiskCache {
                 // Parse the index file body into the in-memory map.
                 final int numEntries = dataInput.readInt();
                 mIndexMap = new LongSparseArray<Record>(numEntries);
-                synchronized (mIndexMap) {
+                synchronized (mIndexMapLock) {
                     for (int i = 0; i < numEntries; ++i) {
                         final long key = dataInput.readLong();
                         final int chunk = dataInput.readShort();

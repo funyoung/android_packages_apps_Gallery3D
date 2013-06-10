@@ -328,19 +328,26 @@ public final class GridInputProcessor implements GestureDetector.OnGestureListen
         if(mPrevEvent == null) {
             mPrevEvent  = MotionEvent.obtain(event);
         }
-        final MotionEvent prev = mPrevEvent;
+//        final MotionEvent prev = mPrevEvent;
 
-        final float px0 = prev.getX(0);
-        final float py0 = prev.getY(0);
-        final float px1 = prev.getX(1);
-        final float py1 = prev.getY(1);
+//        final float px0 = prev.getX(0);
+//        final float py0 = prev.getY(0);
+//        final float px1 = prev.getX(1);
+//        final float py1 = prev.getY(1);
         final float cx0 = event.getX(0);
         final float cy0 = event.getY(0);
-        final float cx1 = event.getX(1);
-        final float cy1 = event.getY(1);
+        final float cx1;
+        final float cy1;
+        if (event.getPointerCount() > 1) {
+            cx1 = event.getX(1);
+            cy1 = event.getY(1);
+        } else {
+            cx1 = cx0;
+            cy1 = cy0;
+        }
 
-        final float pvx = px1 - px0;
-        final float pvy = py1 - py0;
+//        final float pvx = px1 - px0;
+//        final float pvy = py1 - py0;
         final float cvx = cx1 - cx0;
         final float cvy = cy1 - cy0;
 

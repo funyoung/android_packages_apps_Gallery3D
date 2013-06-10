@@ -499,8 +499,8 @@ public class CropImage extends MonitoredActivity {
                 Double latitude = null;
                 Double longitude = null;
                 if (item.isLatLongValid()) {
-                    latitude = new Double(item.mLatitude);
-                    longitude = new Double(item.mLongitude);
+                    latitude = Double.valueOf(item.mLatitude);
+                    longitude = Double.valueOf(item.mLongitude);
                 }
                 Uri newUri = ImageManager.addImage(mContentResolver, title,
                         item.mDateAddedInSec, item.mDateTakenInMs, latitude,

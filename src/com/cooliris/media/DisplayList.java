@@ -25,6 +25,7 @@ public final class DisplayList {
     private DirectLinkedList<DisplayItem> mAnimatables = new DirectLinkedList<DisplayItem>();
     private HashMap<MediaItem, DisplayItem> mDisplayMap = new HashMap<MediaItem, DisplayItem>(1024);
     private ArrayList<DisplayItem> mItems = new ArrayList<DisplayItem>(1024);
+    private final Object mItemsLock = new Object();
 
     public DisplayItem get(MediaItem item) {
         HashMap<MediaItem, DisplayItem> displayMap = mDisplayMap;
@@ -124,7 +125,7 @@ public final class DisplayList {
 
     public void clear() {
         mDisplayMap.clear();
-        synchronized (mItems) {
+        synchronized (mItemsLock) {
             mItems.clear();
         }
     }
@@ -132,7 +133,7 @@ public final class DisplayList {
     public void clearExcept(DisplayItem[] displayItems) {
         HashMap<MediaItem, DisplayItem> displayMap = mDisplayMap;
         displayMap.clear();
-        synchronized (mItems) {
+        synchronized (mItemsLock) {
             mItems.clear();
             int numItems = displayItems.length;
             for (int i = 0; i < numItems; ++i) {

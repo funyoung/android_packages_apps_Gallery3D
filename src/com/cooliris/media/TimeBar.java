@@ -55,7 +55,9 @@ public final class TimeBar extends Layer implements MediaFeed.Listener {
     private float mDragX = 0f;
 
     private ArrayList<Marker> mMarkers = new ArrayList<Marker>();
+    private final Object mMarkersLock = new Object();
     private ArrayList<Marker> mMarkersCopy = new ArrayList<Marker>();
+    private final Object mMarkersCopyLock = new Object();
 
     private static final int KNOB = Res.drawable.scroller_new;
     private static final int KNOB_PRESSED = Res.drawable.scroller_pressed_new;
@@ -129,7 +131,7 @@ public final class TimeBar extends Layer implements MediaFeed.Listener {
     }
 
     public MediaItem getItem() {
-        synchronized (mMarkers) {
+        synchronized (mMarkersLock) {
             // x is between 0 and 1.0f
             int numMarkers = mMarkers.size();
             if (numMarkers == 0)
@@ -161,7 +163,7 @@ public final class TimeBar extends Layer implements MediaFeed.Listener {
     }
 
     private Marker getAnchorMarker() {
-        synchronized (mMarkers) {
+        synchronized (mMarkersLock) {
             // x is between 0 and 1.0f
             int numMarkers = mMarkers.size();
             if (numMarkers == 0)
@@ -188,7 +190,7 @@ public final class TimeBar extends Layer implements MediaFeed.Listener {
         if (mFeed != null) {
             // Clear existing markers.
             mTracker.clear();
-            synchronized (mMarkers) {
+            synchronized (mMarkersLock) {
                 mMarkers.clear();
             }
             float scrollX = mScroll;
@@ -289,7 +291,7 @@ public final class TimeBar extends Layer implements MediaFeed.Listener {
             }
             mPosition = getPositionForScroll(scrollX);
             mPositionAnim = mPosition;
-            synchronized (mMarkersCopy) {
+            synchronized (mMarkersCopyLock) {
                 int numMarkers = mMarkers.size();
                 mMarkersCopy.clear();
                 mMarkersCopy.ensureCapacity(numMarkers);
